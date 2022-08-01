@@ -1,0 +1,9 @@
+variable "prefix" {}
+variable "location" {}
+variable "create_ssh" {}
+variable "tags" {}
+variable "az_resource_group" {}
+variable "web_subnet_id" {}
+variable "priv_sec_group" {}
+variable "ssh_key" {}
+variable "sdm_pub_key" {}

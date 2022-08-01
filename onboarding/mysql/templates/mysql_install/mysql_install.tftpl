@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Install SDM Public SSH Key
+echo "${SSH_PUB_KEY}" | sudo tee -a /etc/ssh/sdm_ca.pub
+echo "TrustedUserCAKeys /etc/ssh/sdm_ca.pub" | sudo tee -a /etc/ssh/sshd_config
+sudo systemctl restart ssh
+
+# Install MySQL
+sudo apt update -y 
+sudo apt install -y mysql-server
+sudo mysql_secure_installation <<EOF
+n
+strongdmpassword123
+strongdmpassword123
+y
+n
+y
+y
+EOF
+
+# Set up MySQL
+sudo mysql --user=root \
+--password=strongdmpassword123 \
+--execute="CREATE DATABASE strongdmdb;\
+  CREATE TABLE strongdmdb.strongdm_table (message VARCHAR(20));\
+  INSERT INTO strongdmdb.strongdm_table VALUES ('Hello');\
+  CREATE USER 'strongdmadmin'@'%' IDENTIFIED BY 'strongdmpassword123';\
+  GRANT ALL PRIVILEGES ON *.* TO 'strongdmadmin'@'%';\
+  CREATE USER 'strongdmreadonly'@'%' IDENTIFIED BY 'strongdmpassword123';\
+  GRANT SELECT ON strongdmdb.* TO 'strongdmreadonly'@'%';\
+  FLUSH PRIVILEGES;"
+sudo sed -i "s/.*bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo systemctl restart mysql

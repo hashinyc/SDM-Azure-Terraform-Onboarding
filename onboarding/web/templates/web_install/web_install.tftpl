@@ -1,0 +1,49 @@
+#!/bin/bash
+
+echo "${SSH_PUB_KEY}" | sudo tee -a /etc/ssh/sdm_ca.pub
+echo "TrustedUserCAKeys /etc/ssh/sdm_ca.pub" | sudo tee -a /etc/ssh/sshd_config
+sudo systemctl restart ssh
+
+# Update system  
+sudo apt-get update -y  
+   
+## Install Apache  
+sudo apt-get install apache2 apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert -y  
+   
+## Install PHP  
+sudo apt-get install php libapache2-mod-php php-mysql -y  
+   
+# Install MySQL database server  
+export DEBIAN_FRONTEND="noninteractive"  
+debconf-set-selections <<< "mysql-server mysql-server/root_password password strongdmadmin123"  
+debconf-set-selections <<< "mysql-server mysql-server/root_password_again password strongdmadmin123"  
+sudo apt-get install mysql-server -y  
+   
+# Enabling Mod Rewrite  
+sudo a2enmod rewrite  
+sudo php5enmod mcrypt  
+   
+# Set Permissions  
+sudo chown -R www-data:www-data /var/www  
+
+sudo tee /var/www/html/index.html <<EOT
+<!DOCTYPE html> 
+<html> 
+  </head>
+    <title>SDM Hello World!</title>
+  </head>
+  <body>
+    <h1>Hello and Welcome to SDM in Azure Quickstart!</h1>
+  </body>
+<html>
+EOT
+
+## Install PhpMyAdmin  
+sudo apt-get install phpmyadmin -y  
+  
+## Configure PhpMyAdmin  
+echo 'Include /etc/phpmyadmin/apache.conf' | sudo tee -a /etc/apache2/apache2.conf  
+   
+
+# Restart Apache  
+sudo systemctl restart apache2  
